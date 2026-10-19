@@ -1,4 +1,6 @@
-# Payroll API (Bref + AWS Lambda)
+# Serverless Payroll Management
+
+PHP payroll API built with Bref and AWS Lambda.
 
 PHP 8.2+ API backed by CSV files. `data/employees.csv` (500 rows) and `data/payroll.csv` (600 rows) are the published dataset tables from [Employees and Payroll](https://databasesample.com/datasets/employees-and-payroll).
 
