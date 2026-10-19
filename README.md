@@ -11,6 +11,8 @@ PHP 8.2+ API backed by CSV files. `data/employees.csv` (500 rows) and `data/payr
 - `GET /api/payslips/{payroll_id}` — returns the matched employee and payroll figures.
 - `POST /api/payslips/{payroll_id}/generate` — creates a PDF and uploads it to `s3://sambile-payroll-records/payslips/{payroll_id}.pdf`. The bucket remains private; view the PDF in the S3 console.
 
+The API is served under `/api`; requesting `/` returns 404 by design. PDF generation is a `POST` request and does not require a request body.
+
 By default, CSV files are `data/employees.csv` and `data/payroll.csv`. Override paths using `EMPLOYEES_CSV` and `PAYROLL_CSV`.
 
 The source CSVs identify employees and payroll records with `id`, and the API uses those actual columns. The payroll dataset has no deductions column, so deductions are calculated as gross pay minus net pay. Pay period dates are included in generated PDFs.
@@ -27,10 +29,12 @@ This lab demonstrates how a PHP Lambda API can parse CSV records, join payroll t
 
 ```powershell
 Set-Location .\public
+$env:S3_BUCKET = "sambile-payroll-records"
+$env:AWS_REGION_NAME = "us-east-1"
 php -S 127.0.0.1:8000 index.php
 ```
 
-Then request the endpoints at `http://127.0.0.1:8000`. The PDF endpoint also requires AWS credentials that can write to the configured bucket prefix.
+Then request the endpoints at `http://127.0.0.1:8000`. The PDF endpoint also requires AWS credentials that can write to the configured bucket prefix. In Lambda, the bucket and region are configured by Serverless and AWS SDK credentials come from the Lambda execution role.
 
 ## Deploy
 

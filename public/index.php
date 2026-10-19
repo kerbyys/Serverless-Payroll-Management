@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use Aws\S3\S3Client;
+use Aws\Exception\AwsException;
 use Bramus\Router\Router;
 use Dompdf\Dompdf;
+use Dompdf\Exception as DompdfException;
 use Dompdf\Options;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
@@ -13,14 +15,20 @@ function jsonResponse(array $body, int $status = 200): void
 {
     http_response_code($status);
     header('Content-Type: application/json; charset=utf-8');
-    echo json_encode($body, JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
+    echo json_encode($body, JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR);
 }
 
 function runSafely(callable $handler): void
 {
     try {
         $handler();
-    } catch (Throwable $exception) {
+    } catch (AwsException $exception) {
+        error_log((string) $exception);
+        jsonResponse(['success' => false, 'message' => 'The S3 operation could not be completed.'], 502);
+    } catch (DompdfException $exception) {
+        error_log((string) $exception);
+        jsonResponse(['success' => false, 'message' => 'The payslip PDF could not be generated.'], 500);
+    } catch (RuntimeException|JsonException $exception) {
         error_log((string) $exception);
         jsonResponse(['success' => false, 'message' => 'The request could not be completed.'], 500);
     }
@@ -250,7 +258,10 @@ $router->post('/api/payslips/([A-Za-z0-9_-]+)/generate', static function (string
             return;
         }
 
-        $bucket = getenv('S3_BUCKET') ?: 'sambile-payroll-records';
+        $bucket = getenv('S3_BUCKET');
+        if ($bucket === false || trim($bucket) === '') {
+            throw new RuntimeException('S3_BUCKET environment variable is not configured.');
+        }
 
         $escape = static fn ($value): string => htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         $employeeRows = '';
