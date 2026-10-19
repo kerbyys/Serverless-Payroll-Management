@@ -1,0 +1,37 @@
+service: payroll-bref-api
+frameworkVersion: "^3.40.0"
+
+provider:
+  name: aws
+  region: us-east-1
+  environment:
+    S3_BUCKET: sambile-payroll-records
+    AWS_REGION_NAME: ${self:provider.region}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - s3:PutObject
+          Resource:
+            - "arn:aws:s3:::sambile-payroll-records/payslips/*"
+
+plugins:
+  - ./vendor/bref/bref
+
+functions:
+  api:
+    handler: public/index.php
+    runtime: php-83-fpm
+    timeout: 28
+    events:
+      - httpApi: "*"
+
+package:
+  patterns:
+    - "!node_modules/**"
+    - "!tests/**"
+    - "!screenshots/**"
+    - "data/**"
+    - "public/**"
+    - "vendor/**"

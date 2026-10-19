@@ -1,0 +1,17 @@
+{
+    "name": "student/payroll-bref-api",
+    "description": "Serverless PHP Payroll API using Bref, Bramus Router, and AWS Lambda",
+    "type": "project",
+    "require": {
+        "php": ">=8.2",
+        "bref/bref": "^2.1",
+        "bramus/router": "^1.6",
+        "aws/aws-sdk-php": "^3.300",
+        "dompdf/dompdf": "^3.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "bref/bref": true
+        }
+    }
+}
